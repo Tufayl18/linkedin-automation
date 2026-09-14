@@ -8,6 +8,8 @@ import path from 'node:path';
 import { runAuth } from './auth.js';
 import { reviewPost } from './review.js';
 import { publishPost } from './publisher.js';
+import { lintPost, printLintReport } from './linter.js';
+import { startPreviewServer } from './preview.js';
 import {
   getPostFolders,
   getPostDetails,
@@ -179,9 +181,15 @@ async function handlePublishFlow(targetInput) {
 
   const postDetail = await getPostDetails(target);
 
-  // Review first
+  // Review & Lint first
   const valid = await reviewPost(target);
-  if (!valid) return;
+  if (!valid) {
+    const override = await promptUser(`${colors.yellow}Linter found critical errors. Proceed with publishing anyway? (y/N): ${colors.reset}`);
+    if (override.toLowerCase() !== 'y' && override.toLowerCase() !== 'yes') {
+      console.log(`${colors.dim}Publishing aborted. Please fix errors first.${colors.reset}\n`);
+      return;
+    }
+  }
 
   // Duplicate publish guard
   if (postDetail.status === 'PUBLISHED') {
@@ -215,6 +223,17 @@ async function handlePublishFlow(targetInput) {
   await publishPost(target);
 }
 
+async function selectPostFolder(folders, actionLabel) {
+  if (folders.length === 0) {
+    console.log(`${colors.yellow}No posts found in posts/ folder.${colors.reset}`);
+    return null;
+  }
+  await renderDashboard();
+  const num = await promptUser(`${colors.cyan}Enter post number to ${actionLabel} [1-${folders.length}] (default 1): ${colors.reset}`);
+  const idx = parseInt(num, 10) ? parseInt(num, 10) - 1 : 0;
+  return folders[idx] || folders[0];
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const command = args[0] || 'menu';
@@ -232,15 +251,35 @@ async function main() {
       await renderDashboard();
       break;
 
+    case 'lint': {
+      let target = args[1];
+      const folders = await getPostFolders();
+      if (!target) {
+        target = await selectPostFolder(folders, 'lint');
+        if (!target) break;
+      }
+      const report = await lintPost(target);
+      printLintReport(report, target);
+      break;
+    }
+
+    case 'preview': {
+      let target = args[1];
+      const folders = await getPostFolders();
+      if (!target) {
+        target = await selectPostFolder(folders, 'preview');
+        if (!target) break;
+      }
+      await startPreviewServer(target);
+      break;
+    }
+
     case 'review': {
       let target = args[1];
+      const folders = await getPostFolders();
       if (!target) {
-        const folders = await getPostFolders();
-        if (folders.length === 0) {
-          console.log(`${colors.yellow}No posts available to review.${colors.reset}`);
-          break;
-        }
-        target = folders[0];
+        target = await selectPostFolder(folders, 'review');
+        if (!target) break;
       }
       await reviewPost(target);
       break;
@@ -260,37 +299,38 @@ async function main() {
 
       console.log(`\n${colors.bgBlue}${colors.bold}  LINKEDIN POST AUTOMATION CLI  ${colors.reset}`);
       console.log(`  ${colors.dim}Status: 🟢 ${readyCount} Ready to post | 🟡 ${draftCount} Drafts | 🚀 ${pubCount} Published${colors.reset}\n`);
-      console.log(`  ${colors.green}1.${colors.reset} 📝 Create new post draft     (${colors.dim}node src/cli.js new${colors.reset})`);
-      console.log(`  ${colors.green}2.${colors.reset} 📊 Post Status Dashboard     (${colors.dim}node src/cli.js status${colors.reset})`);
-      console.log(`  ${colors.green}3.${colors.reset} 📋 Review post draft in CLI   (${colors.dim}node src/cli.js review${colors.reset})`);
-      console.log(`  ${colors.green}4.${colors.reset} 🚀 Publish a post            (${colors.dim}node src/cli.js publish${colors.reset})`);
-      console.log(`  ${colors.green}5.${colors.reset} 🔑 Authenticate LinkedIn      (${colors.dim}node src/cli.js auth${colors.reset})`);
+      console.log(`  ${colors.green}1.${colors.reset} 📝 Create new post draft        (${colors.dim}npm run new${colors.reset})`);
+      console.log(`  ${colors.green}2.${colors.reset} 📊 Post Status Dashboard        (${colors.dim}npm run status${colors.reset})`);
+      console.log(`  ${colors.green}3.${colors.reset} 📋 Review post draft in CLI      (${colors.dim}npm run review${colors.reset})`);
+      console.log(`  ${colors.green}4.${colors.reset} 🛡️  Lint & check AGENTS.md rules  (${colors.dim}npm run lint${colors.reset})`);
+      console.log(`  ${colors.green}5.${colors.reset} 🔍 Visual Feed Browser Preview  (${colors.dim}npm run preview${colors.reset})`);
+      console.log(`  ${colors.green}6.${colors.reset} 🚀 Publish a post               (${colors.dim}npm run publish${colors.reset})`);
+      console.log(`  ${colors.green}7.${colors.reset} 🔑 Authenticate LinkedIn         (${colors.dim}npm run auth${colors.reset})`);
       console.log(`  ${colors.green}0.${colors.reset} 🚪 Exit\n`);
 
-      const choice = await promptUser(`${colors.cyan}Select an option (0-5): ${colors.reset}`);
+      const choice = await promptUser(`${colors.cyan}Select an option (0-7): ${colors.reset}`);
+      const folders = await getPostFolders();
+
       if (choice === '1') {
         await scaffoldNewPost();
       } else if (choice === '2') {
         await renderDashboard();
       } else if (choice === '3') {
-        if (posts.length > 0) {
-          await renderDashboard();
-          const num = await promptUser(`${colors.cyan}Enter post number to review [1-${posts.length}] (default 1): ${colors.reset}`);
-          const idx = parseInt(num, 10) ? parseInt(num, 10) - 1 : 0;
-          await reviewPost(posts[idx]?.folderName || posts[0].folderName);
-        } else {
-          console.log(`${colors.yellow}No posts available to review.${colors.reset}`);
-        }
+        const target = await selectPostFolder(folders, 'review');
+        if (target) await reviewPost(target);
       } else if (choice === '4') {
-        if (posts.length > 0) {
-          await renderDashboard();
-          const num = await promptUser(`${colors.cyan}Enter post number to publish [1-${posts.length}] (default 1): ${colors.reset}`);
-          const idx = parseInt(num, 10) ? parseInt(num, 10) - 1 : 0;
-          await handlePublishFlow(posts[idx]?.folderName || posts[0].folderName);
-        } else {
-          console.log(`${colors.yellow}No posts available to publish.${colors.reset}`);
+        const target = await selectPostFolder(folders, 'lint');
+        if (target) {
+          const report = await lintPost(target);
+          printLintReport(report, target);
         }
       } else if (choice === '5') {
+        const target = await selectPostFolder(folders, 'preview');
+        if (target) await startPreviewServer(target);
+      } else if (choice === '6') {
+        const target = await selectPostFolder(folders, 'publish');
+        if (target) await handlePublishFlow(target);
+      } else if (choice === '7') {
         await runAuth();
       }
       break;
@@ -302,4 +342,3 @@ main().catch(err => {
   console.error(`\n${colors.red}[Fatal Error] ${err.message}${colors.reset}\n`);
   process.exit(1);
 });
-

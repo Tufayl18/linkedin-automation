@@ -2,6 +2,8 @@ import fs from 'node:fs/promises';
 import fsSync from 'node:fs';
 import path from 'node:path';
 import { POSTS_DIR, getPostDetails, colors } from './utils.js';
+import { lintPost, printLintReport } from './linter.js';
+import { getFoldCutoff } from './preview.js';
 
 export async function reviewPost(folderName) {
   const postFolder = path.isAbsolute(folderName) ? folderName : path.join(POSTS_DIR, folderName);
@@ -31,16 +33,26 @@ export async function reviewPost(folderName) {
   console.log(`${colors.blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}`);
 
   // 1. Post Content
+  let postContent = '';
   if (fsSync.existsSync(postPath)) {
-    const postContent = (await fs.readFile(postPath, 'utf-8')).trim();
+    postContent = (await fs.readFile(postPath, 'utf-8')).trim();
     const charCount = postContent.length;
     const wordCount = postContent.split(/\s+/).filter(Boolean).length;
-    const lines = postContent.split('\n');
 
-    console.log(`\n${colors.bold}📝 Post Body (${charCount} characters / ${wordCount} words):${colors.reset}`);
+    console.log(`\n${colors.bold}📝 Full Post Body (${charCount} characters / ${wordCount} words):${colors.reset}`);
     console.log(`${colors.dim}------------------------------------------------------------------${colors.reset}`);
     console.log(postContent);
     console.log(`${colors.dim}------------------------------------------------------------------${colors.reset}`);
+
+    // "Above the Fold" / "...see more" analysis
+    if (postContent.length > 0) {
+      const { mobileAboveFold, desktopAboveFold } = getFoldCutoff(postContent);
+      console.log(`\n${colors.bold}${colors.cyan}📱 Feed Hook Truncation Preview ("...see more" cut-off):${colors.reset}`);
+      console.log(`  ${colors.yellow}• Mobile App Fold (~First 3 lines):${colors.reset}`);
+      console.log(`    ${colors.dim}"${mobileAboveFold.replace(/\n/g, ' ')}... ${colors.cyan}[...see more]${colors.dim}"${colors.reset}`);
+      console.log(`  ${colors.yellow}• Desktop Web Fold (~First 5 lines):${colors.reset}`);
+      console.log(`    ${colors.dim}"${desktopAboveFold.replace(/\n/g, ' ')}... ${colors.cyan}[...see more]${colors.dim}"${colors.reset}`);
+    }
   } else {
     console.log(`\n${colors.yellow}[!] No post.md found in this folder.${colors.reset}`);
   }
@@ -65,17 +77,21 @@ export async function reviewPost(folderName) {
     console.log(`  ${colors.dim}(No images directory found)${colors.reset}`);
   }
 
-  // 3. Strategy / README.md
+  // 3. Quality & Rule Linter Check
+  const lintReport = await lintPost(folderName);
+  printLintReport(lintReport, baseName);
+
+  // 4. Strategy / README.md
   if (fsSync.existsSync(readmePath)) {
-    console.log(`\n${colors.bold}📖 Post Strategy (from README.md):${colors.reset}`);
+    console.log(`${colors.bold}📖 Post Strategy (from README.md):${colors.reset}`);
     const readmeContent = await fs.readFile(readmePath, 'utf-8');
-    const previewLines = readmeContent.split('\n').slice(0, 15).join('\n');
+    const previewLines = readmeContent.split('\n').slice(0, 10).join('\n');
     console.log(`${colors.dim}${previewLines}${colors.reset}`);
-    if (readmeContent.split('\n').length > 15) {
-      console.log(`${colors.dim}... [see README.md for full details]${colors.reset}`);
+    if (readmeContent.split('\n').length > 10) {
+      console.log(`${colors.dim}... [see README.md for full strategy notes]${colors.reset}`);
     }
   }
 
   console.log(`\n${colors.blue}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${colors.reset}\n`);
-  return true;
+  return lintReport.passed;
 }

@@ -1,6 +1,6 @@
 # 🚀 LinkedIn Automation CLI
 
-A zero-dependency, terminal-driven tool to draft, organize, review, and publish posts directly to your personal LinkedIn feed using official LinkedIn REST APIs.
+A zero-dependency, terminal-driven tool to draft, organize, review, lint, preview, and publish posts directly to your personal LinkedIn feed using official LinkedIn REST APIs.
 
 > **AI-Agnostic & Manual Friendly:** Built in pure Node.js (ESM). You can brainstorm and draft posts using **any AI tool** (Antigravity, Claude Code, Cursor, Aider, Copilot, ChatGPT) or manage everything **100% manually**. AI post writing rules and style constraints are defined in [`AGENTS.md`](./AGENTS.md) and [`CLAUDE.md`](./CLAUDE.md).
 
@@ -32,9 +32,9 @@ A zero-dependency, terminal-driven tool to draft, organize, review, and publish 
 ## 🔄 Daily Workflow
 
 ```
-1. Create Draft ──────► 2. Write & Edit ──────► 3. Check Status ─────► 4. Publish
-   npm run new            Edit post.md             npm run status         npm run publish
-                          (Manual or with AI)      npm run review         (Duplicate-protected)
+1. Create Draft ───► 2. Write & Edit ───► 3. Lint & Review ───► 4. Visual Preview ───► 5. Publish
+   npm run new          Edit post.md         npm run lint          npm run preview       npm run publish
+                        (Manual or AI)       npm run review        (Mobile/Desktop)      (Live Feed)
 ```
 
 1. **Scaffold a new post:**
@@ -47,19 +47,24 @@ A zero-dependency, terminal-driven tool to draft, organize, review, and publish 
    - **`post.md`**: The actual LinkedIn copy + hashtags (this gets published).
    - **`README.md`**: Strategy notes, hooks, and target audience (internal only).
    - **`images/`**: Optional folder for screenshots/images (`.png`, `.jpg`, `.webp`).
-   *(Ask any AI assistant to brainstorm hooks/copy or write it yourself).*
 
-3. **Check Status & Review:**
+3. **Check Status, Review & Lint:**
    ```bash
-   npm run status   # View all posts and their ready/draft/published states
-   npm run review   # Preview layout, char/word counts, and images
+   npm run status   # View status dashboard of all posts
+   npm run lint     # Validates compliance with AGENTS.md (bullets, spacing, emojis, dividers)
+   npm run review   # Terminal review with fold truncation ("...see more" cut-off)
    ```
 
-4. **Publish to LinkedIn:**
+4. **Visual Web Card Preview:**
+   ```bash
+   npm run preview  # Opens realistic LinkedIn card mockup in browser (Desktop & Mobile view)
+   ```
+
+5. **Publish to LinkedIn:**
    ```bash
    npm run publish
    ```
-   Uploads images, publishes live to your personal feed, updates post status to `PUBLISHED`, and protects against accidental duplicate posting.
+   Uploads images, runs duplicate & lint safety guards, and publishes live to your feed.
 
 ---
 
@@ -89,6 +94,8 @@ posts/2026-09-14-my-topic/
 | `npm start` | Interactive menu with live post count summary |
 | `npm run status` | Shows the **Status Dashboard** of all drafts, ready, and published posts |
 | `npm run new` | Scaffolds a new post folder bundle (`npm run new -- "title"`) |
-| `npm run review` | Previews formatting, character counts, images, and strategy |
-| `npm run publish` | Uploads media, applies duplicate check, and publishes live |
-| `npm run auth` | 1-click LinkedIn OAuth 2.0 browser login |
+| `npm run lint` | 🛡️ Lints `post.md` against [`AGENTS.md`](./AGENTS.md) rules (dividers, bullets, emojis, length) |
+| `npm run review` | 📋 Previews layout, character counts, fold truncation, images, and strategy |
+| `npm run preview` | 🔍 Opens interactive **Desktop/Mobile LinkedIn Card Mockup** in browser |
+| `npm run publish` | 🚀 Uploads media, applies duplicate check, and publishes live |
+| `npm run auth` | 🔑 1-click LinkedIn OAuth 2.0 browser login |

@@ -9,6 +9,8 @@
     "status": "node src/cli.js status",
     "new": "node src/cli.js new",
     "review": "node src/cli.js review",
+    "lint": "node src/cli.js lint",
+    "preview": "node src/cli.js preview",
     "publish": "node src/cli.js publish",
     "auth": "node src/cli.js auth"
   }
