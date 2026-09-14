@@ -1,0 +1,15 @@
+{
+  "name": "linkedin-automation",
+  "version": "1.0.0",
+  "description": "Terminal-driven LinkedIn post manager and publisher",
+  "type": "module",
+  "main": "src/cli.js",
+  "scripts": {
+    "start": "node src/cli.js",
+    "status": "node src/cli.js status",
+    "new": "node src/cli.js new",
+    "review": "node src/cli.js review",
+    "publish": "node src/cli.js publish",
+    "auth": "node src/cli.js auth"
+  }
+}
