@@ -34,13 +34,15 @@ Avoid excessive bragging or phrases such as:
 
 "Excited to share my journey..."
 
-Instead, prefer natural openings such as:
+Instead, prefer natural, scenario-based openings such as:
 
 "I noticed something interesting while testing..."
 
 "I ran into a small issue during my Linux lab..."
 
 "I expected X, but Linux actually did Y."
+
+Never start posts with a question (e.g., "Ever looked closely at...", "Did you know...?"). Always ground the opening in a direct scenario or observation.
 
 ### Short and Punchy
 
@@ -70,19 +72,18 @@ or similar visual separators.
 
 Use headings, numbered sections, or natural paragraph breaks instead.
 
-### Important Information
+### Bolding and Text Formatting (Preview & Posting)
 
-Bold important concepts, commands, results, and takeaways.
+LinkedIn text posts do NOT support Markdown syntax like `**bold**`.
 
-Examples:
+If you write `**Drizzle**`, it will literally display as `**Drizzle**` with asterisks both in local browser previews and on the live LinkedIn feed.
 
-**`usermod -L` vs `passwd -l`**
-
-**One `!` vs two `!!`**
-
-**The original password hash is preserved**
-
-Do not bold entire paragraphs.
+**Rule for Bolding:**
+• Always use **Unicode Bold** characters (e.g., `𝗗𝗿𝗶𝘇𝘇𝗹𝗲`, `𝗣𝗿𝗶𝘀𝗺𝗮`, `𝗘𝗖𝟮`, `𝗔𝗪𝗦 𝗥𝗗𝗦`, `𝟭.`, `𝟮.`) for bold text in `post.md`.
+• Never leave raw Markdown asterisks (`**word**`) in `post.md`.
+• While previewing and after posting, text must visibly appear bold (`𝗗𝗿𝗶𝘇𝘇𝗹𝗲`), never with raw Markdown asterisks (`**Drizzle**`).
+• Bold important concepts, keywords, numbers, and takeaways.
+• Do not bold entire paragraphs.
 
 ### Bullets
 
@@ -182,17 +183,28 @@ Do not immediately turn every conversation into a post.
 
 ### Step 2: Identify the Hook
 
-Create a natural hook based on the actual experience.
+Create a natural hook based on the actual experience and scenario.
 
-Prefer curiosity based hooks over clickbait.
+**Rule: Never start with a question.**
 
-Good:
+Do not open posts with rhetorical or conversational questions like:
+• "Ever looked closely at `/etc/shadow` while locking a Linux user?"
+• "Have you ever wondered...?"
+• "Did you know that...?"
 
-"Ever looked closely at `/etc/shadow` while locking a Linux user?"
+Start with **scenario-based openings only**, directly setting the context or observation without any questions.
+
+Good (Scenario-based):
+
+"While testing user account locking on AlmaLinux 9, I checked `/etc/shadow` to see what changed."
+
+"During a routine PAM authentication test, I ran into unexpected behavior with `usermod -L`."
 
 Avoid:
 
-"This ONE Linux trick will change everything!"
+Questions: "Ever looked closely at `/etc/shadow` while locking a Linux user?"
+
+Clickbait: "This ONE Linux trick will change everything!"
 
 ### Step 3: Verify Technical Claims
 
@@ -374,7 +386,7 @@ Screenshots, diagrams, and other visual assets.
 
 Before marking a post as `READY`, verify:
 
-• The hook is natural
+• The hook is scenario-based and never starts with a question
 • The post has one clear topic
 • The technical explanation is accurate
 • Distribution specific behavior is clearly identified

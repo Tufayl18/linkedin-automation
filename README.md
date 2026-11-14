@@ -27,6 +27,8 @@ A zero-dependency, terminal-driven tool to draft, organize, review, lint, previe
    ```
    Logs in via browser and automatically saves your access token to `.env`.
 
+   > **Note on Token Expiration (60 Days):** LinkedIn OAuth access tokens expire after **60 days**. If you ever see an `EXPIRED_ACCESS_TOKEN` (HTTP 401 / code `65602`) error, simply rerun `npm run auth` to refresh your token.
+
 ---
 
 ## 🔄 Daily Workflow
@@ -99,3 +101,25 @@ posts/2026-09-14-my-topic/
 | `npm run preview` | 🔍 Opens interactive **Desktop/Mobile LinkedIn Card Mockup** in browser |
 | `npm run publish` | 🚀 Uploads media, applies duplicate check, and publishes live |
 | `npm run auth` | 🔑 1-click LinkedIn OAuth 2.0 browser login |
+
+---
+
+## 🔑 Token Management & Refreshing (60-Day Expiry)
+
+LinkedIn OAuth access tokens automatically expire after **60 days**.
+
+### Identifying an Expired Token
+When your token expires, running `npm run publish` will fail with:
+```text
+[Fatal Error] Image registration failed (401): {"status":401,"serviceErrorCode":65602,"code":"EXPIRED_ACCESS_TOKEN","message":"The token used in the request has expired"}
+```
+
+### How to Refresh:
+Simply rerun the auth command in your terminal:
+```bash
+npm run auth
+```
+1. It starts a temporary local server on port `8080` and opens LinkedIn's authorization prompt in your browser.
+2. Click **Allow**.
+3. The callback server automatically exchanges the authorization code for a fresh 60-day access token and updates `.env`.
+4. Rerun `npm run publish` to proceed with publishing your post.

@@ -385,8 +385,20 @@ export async function startPreviewServer(folderName) {
       }
     }
 
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(generatePreviewHtml(baseName, postContent, imageList, authorName));
+    // Dynamically re-read postContent and images on each request so browser refreshes immediately show file changes
+    let currentPostContent = '';
+    if (fsSync.existsSync(postFile)) {
+      currentPostContent = (await fs.readFile(postFile, 'utf-8')).trim();
+    }
+    let currentImageList = [];
+    if (fsSync.existsSync(imagesDir)) {
+      const files = await fs.readdir(imagesDir);
+      const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp'];
+      currentImageList = files.filter(f => validExtensions.includes(path.extname(f).toLowerCase()));
+    }
+
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(generatePreviewHtml(baseName, currentPostContent, currentImageList, authorName));
   });
 
   server.on('error', (err) => {

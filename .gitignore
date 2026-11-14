@@ -7,6 +7,10 @@
 posts/*
 !posts/.gitkeep
 
+# Local resources & research material (keep resources/ directory, ignore contents)
+resources/*
+!resources/.gitkeep
+
 # Dependencies
 node_modules/
 

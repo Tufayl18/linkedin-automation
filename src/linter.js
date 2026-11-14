@@ -111,6 +111,11 @@ export async function lintPost(folderName) {
     warnings.push('Markdown code fences (```) detected. LinkedIn text posts do not format markdown code blocks. Use clean inline commands or images instead.');
   }
 
+  // 4b. Raw Markdown Bold Asterisks Check (AGENTS.md: Use Unicode bold characters like 𝗗𝗿𝗶𝘇𝘇𝗹𝗲 instead of **word**)
+  if (/\*\*[^*]+?\*\*/.test(content)) {
+    warnings.push('Raw Markdown bold asterisks (e.g. **word**) detected. LinkedIn text posts do not support Markdown and will display literal asterisks. Use Unicode Bold characters (e.g. 𝗗𝗿𝗶𝘇𝘇𝗹𝗲) instead.');
+  }
+
   // 5. Hyphen Bullets Check (AGENTS.md: Use '•' for bullet points instead of '-')
   lines.forEach((line, idx) => {
     const trimmed = line.trim();
